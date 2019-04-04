@@ -1,0 +1,67 @@
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. DDMRPEXAMPLE.
+            DATA DIVISION.
+              WORKING-STORAGE SECTION.
+              *> setting up DDMRP values
+              *> no values set yet
+              01 PART-NUMBER PIC X(9).
+              01 ASR-LEADTIME PIC 9(9).
+              01 AVERAGE-DAILY-USAGE PIC 9(9).
+              01 BATCH-SIZE PIC 9(9).
+              01 MINIMUM-ORDER-QUANTITY PIC 9(9).
+              01 RED-SAFETY-ZONE PIC 9(9).
+              01 RED-BASE-ZONE PIC 9(9).
+              01 YELLOW-ZONE PIC 9(9).
+              01 GREEN-ZONE PIC 9(9).
+              01 RED-ZONE PIC 9(9).
+              01 TOP-OF-RED PIC Z(9).
+              01 TOP-OF-YELLOW PIC Z(9).
+              01 TOP-OF-GREEN PIC Z(9).
+              01 AVERAGE-ONHAND PIC 9(9).
+              01 TOG PIC 9(9).
+              01 TOY PIC 9(9).
+              01 TOR PIC 9(9).
+              01 SPIKE-TRIGGER PIC 9(9).
+              01 ONHAND-OR-ONORDER PIC 9(9).
+              01 ONHAND-OR-ONORDER-DISPLAY PIC Z(9).
+              01 ORDSIZE PIC 9(9).
+              01 ORDER-SIZE PIC Z(9).
+              *> Standard DDMRP values
+              01 VARIABILITY-ADJUST PIC S9(3)V9(2) VALUE 0.6.
+              01 LEADTIME-ADJUST PIC S9(3)V9(2) VALUE 0.5.
+
+            PROCEDURE DIVISION.
+              *> Values set for each Part Number. Other Variables would be 05
+              MOVE "PRT-12345" TO PART-NUMBER.
+              MOVE 35 TO ASR-LEADTIME.
+              MOVE 20 TO AVERAGE-DAILY-USAGE.
+              MOVE 1540 TO ONHAND-OR-ONORDER.
+              *> Zone Calucations set for each Part Number
+              MULTIPLY ASR-LEADTIME BY AVERAGE-DAILY-USAGE GIVING YELLOW-ZONE.
+              MULTIPLY YELLOW-ZONE BY LEADTIME-ADJUST GIVING GREEN-ZONE
+              MOVE GREEN-ZONE TO RED-BASE-ZONE.
+              MULTIPLY RED-BASE-ZONE BY VARIABILITY-ADJUST GIVING RED-SAFETY-ZONE
+              ADD RED-SAFETY-ZONE TO RED-BASE-ZONE GIVING RED-ZONE.
+              MOVE RED-ZONE TO TOP-OF-RED.
+              ADD RED-ZONE TO YELLOW-ZONE GIVING TOG.
+              MOVE TOG TO TOP-OF-YELLOW.
+              ADD GREEN-ZONE RED-ZONE YELLOW-ZONE GIVING TOG.
+              MOVE TOG TO TOP-OF-GREEN.
+              MOVE ONHAND-OR-ONORDER TO ONHAND-OR-ONORDER-DISPLAY
+              *> Display Zone Values
+              DISPLAY 'DDMRP ORDERING VALUES FOR 'PART-NUMBER.
+              DISPLAY 'TOP OF GREEN IS    ' TOP-OF-GREEN.
+              DISPLAY 'TOP OF YELLOW IS   ' TOP-OF-YELLOW.
+              DISPLAY 'RED ZONE IS        ' TOP-OF-RED.
+              DISPLAY 'WIP IS             ' ONHAND-OR-ONORDER-DISPLAY.
+              *> Order Calculations
+              SUBTRACT ONHAND-OR-ONORDER FROM TOG GIVING ORDSIZE.
+              MOVE ORDSIZE TO ORDER-SIZE
+              
+              *>Ordering Decision
+              IF ONHAND-OR-ONORDER IS LESS THAN RED-ZONE THEN
+                DISPLAY 'ORDER ' ORDER-SIZE ' OF ' PART-NUMBER.
+              IF ONHAND-OR-ONORDER IS GREATER THAN OR EQUAL TO RED-ZONE THEN
+                DISPLAY PART-NUMBER ' DOES NOT NEED ORDERING AT THIS TIME'
+ .
+            STOP RUN.
